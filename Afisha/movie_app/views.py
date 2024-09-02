@@ -1,8 +1,17 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Director, Movie, Review
-from rest_framework import status
+from rest_framework import status, generics
 from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
+
+class DirectorListView(generics.ListAPIView):
+    queryset = Director.objects.all()
+    serializer_class = DirectorSerializer
+
+class MovieListView(generics.ListAPIView):
+    queryset = Movie.objects.all()
+    serializer_class = MovieSerializer
+
 
 @api_view(['GET'])
 def director_detail_api_view(request, id):
