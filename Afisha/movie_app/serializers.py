@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Director, Movie, Review, Category
+from .models import Director, Movie, Review, Category, SearchTag
+from rest_framework.exceptions import ValidationError
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,4 +37,32 @@ class DirectorSerializer(serializers.ModelSerializer):
 
     def get_movies_count(self, obj):
         return obj.movie_set.count()
+    
+class MovieValidateSerializer(serializers.Serializer):
+    title = serializers.CharField(required=True, min_length=2, max_length=100)
+    description = serializers.CharField(required=False)
+    duration = serializers.DurationField()
+    tags = serializers.ListField(child=serializers.IntegerField())
+    director_id = serializers.IntegerField(min_value=1)
 
+    def validate_category_id(self, category_id):
+        try:
+            Category.objects.get(id=category_id['category_id'])
+        except Category.DoesNotExist:
+            raise ValidationError('Category does not exists!')
+        return category_id
+    def validate_tags(self, tags):
+        tags_from_db = SearchTag.objects.filter(id__in=tags)
+        if len(tags_from_db) != len(tags):
+            raise ValidationError('Tags does not exists!')
+        return tags
+
+class DirectorValidateSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True, min_length=2, max_length=100)
+    tags = serializers.ListField(child=serializers.IntegerField())
+
+    def validate_tags(self, tags):
+        tags_from_db = SearchTag.objects.filter(id__in=tags)
+        if len(tags_from_db) != len(tags):
+            raise ValidationError('Tags does not exists!')
+        return tags

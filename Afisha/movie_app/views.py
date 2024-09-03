@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Director, Movie, Review
 from rest_framework import status, generics
-from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
+from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer, MovieValidateSerializer, DirectorValidateSerializer
 
 class DirectorListView(generics.ListAPIView):
     queryset = Director.objects.all()
@@ -23,10 +23,12 @@ def director_detail_api_view(request, id):
         return Response(status=status.HTTP_404_NOT_FOUND, data={'error': 'Director not found!'})
     
     if request.method == 'GET':
-        data = MovieSerializer(director).data
+        data = DirectorSerializer(director).data
         return Response(data=data)
     elif request.method == 'PUT':
-        director.name = request.data.get("title")
+        serializer = DirectorValidateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        director.name = request.data.get("name")
         director.tags = request.data.get("tags")
         director.save()
         return Response(data=DirectorSerializer(director).data, status=status.HTTP_201_CREATED)
@@ -48,6 +50,8 @@ def movie_detail_api_view(request, id):
         data = MovieSerializer(movie).data
         return Response(data=data)
     elif request.method == 'PUT':
+        serializer = MovieValidateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         movie.title = request.data.get("title")
         movie.duration = request.data.get("duration")
         movie.description = request.data.get("description")
@@ -65,15 +69,18 @@ def review_detail_api_view(request, id):
     data = ReviewSerializer(review).data
     return Response(data=data)
 
-@api_view(http_method_names=['GET'])
+@api_view(http_method_names=['GET', 'POST'])
 def director_list_create_api_view(request):
     if request.method == 'GET':
         directors = Director.objects.all()
         list_ = DirectorSerializer(instance=directors, many=True).data
         return Response(data=list_, status=status.HTTP_200_OK)
     elif request.method == 'POST':
-        name = request.data.get("name")
-        tags = request.data.get("tags")
+        serializer = DirectorValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(status=400, data=serializer.errors)
+        name = serializer.validated_data.get("name")
+        tags = serializer.validated_data.get("tags")
         director = Movie.objects.create(
             name=name,
         )
@@ -90,11 +97,14 @@ def movie_list_create_api_view(request):
         list_ = MovieSerializer(instance=movies, many=True).data
         return Response(data=list_, status=status.HTTP_200_OK)
     elif request.method == 'POST':
-        title = request.data.get("title")
-        duration = request.data.get("duration")
-        description = request.data.get("description")
-        director = request.data.get("director")
-        tags = request.data.get("tags")
+        serializer = MovieValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(status=400, data=serializer.errors)
+        title = serializer.validated_data.get("title")
+        duration = serializer.validated_data.get("duration")
+        description = serializer.validated_data.get("description")
+        director = serializer.validated_data.get("director")
+        tags = serializer.validated_data.get("tags")
         
         movie = Movie.objects.create(
             title=title,
