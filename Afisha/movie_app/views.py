@@ -15,11 +15,27 @@ class MovieListView(generics.ListAPIView):
 
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'DELETE'])
 def director_detail_api_view(request, id):
-    director = Director.objects.get(id=id)
+    try:
+        director = Director.objects.get(id=id)
+    except Director.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND, data={'error': 'Director not found!'})
+    
+    if request.method == 'GET':
+        data = MovieSerializer(director).data
+        return Response(data=data)
+    elif request.method == 'PUT':
+        director.name = request.data.get("title")
+        director.tags = request.data.get("tags")
+        director.save()
+        return Response(data=DirectorSerializer(director).data, status=status.HTTP_201_CREATED)
+    elif request.method == 'DELETE':
+        director.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     data = DirectorSerializer(director).data
     return Response(data=data)
+
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def movie_detail_api_view(request, id):
@@ -50,10 +66,22 @@ def review_detail_api_view(request, id):
     return Response(data=data)
 
 @api_view(http_method_names=['GET'])
-def director_list_api_view(request):
-    directors = Director.objects.all()
-    list_ = DirectorSerializer(instance=directors, many=True).data
-    return Response(data=list_, status=status.HTTP_200_OK)
+def director_list_create_api_view(request):
+    if request.method == 'GET':
+        directors = Director.objects.all()
+        list_ = DirectorSerializer(instance=directors, many=True).data
+        return Response(data=list_, status=status.HTTP_200_OK)
+    elif request.method == 'POST':
+        name = request.data.get("name")
+        tags = request.data.get("tags")
+        director = Movie.objects.create(
+            name=name,
+        )
+        director.tags.set(tags)
+        director.save()
+        return Response(data=DirectorSerializer(director).data, status=status.HTTP_201_CREATED)
+    
+
 
 @api_view(http_method_names=['GET', 'POST'])
 def movie_list_create_api_view(request):
