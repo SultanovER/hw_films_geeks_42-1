@@ -66,3 +66,9 @@ class DirectorValidateSerializer(serializers.Serializer):
         if len(tags_from_db) != len(tags):
             raise ValidationError('Tags does not exists!')
         return tags
+
+class ReviewValidateSerializer(serializers.Serializer):
+    stars = serializers.IntegerField()
+    text = serializers.CharField(required=False)
+    movie_id = serializers.IntegerField(min_value=1)
+
