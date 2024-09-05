@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from movie_app import views
 from movie_app.views import MovieListView, DirectorListView
+from . import wsgi
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,3 +15,4 @@ urlpatterns = [
     path('api/v1/movie_app/movies/reviews/', MovieListView.as_view(), name='movie-list-with-reviews'),
     path('api/v1/movie_app/directors/', include('movie_app.urls')),
 ]
+urlpatterns += wsgi.urlpatterns

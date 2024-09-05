@@ -62,10 +62,9 @@ class MovieDetailAPIView(RetrieveUpdateDestroyAPIView):
 class DirectorDetailAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Director.objects.all()
     serializer_class = DirectorSerializer
-    director = Director.objects.get(id=id)
     def get(self):
         try:
-            Director.objects.get(id=id)
+            return Director.objects.get(id=self.kwargs['id'])
         except Director.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND, data={'error': 'Director not found!'})
     def put(self, request, *args, **kwargs):
