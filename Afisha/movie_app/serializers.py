@@ -2,6 +2,12 @@ from rest_framework import serializers
 from .models import Director, Movie, Review, Category, SearchTag
 from rest_framework.exceptions import ValidationError
 
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SearchTag
+        fields = '__all__'
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

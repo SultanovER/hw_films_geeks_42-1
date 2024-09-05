@@ -5,17 +5,20 @@ from django.contrib.auth.models import User
 from .serializers import UserRegisterSerializer, UserAuthSerializer
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 
-@api_view(['POST'])
-def auth_api_view(request):
-    serializer = UserAuthSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+class AuthAPIView(APIView):
+    def post(self, request):
+        serializer = UserAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-    user = authenticate(**serializer.validated_data)
-    if user is not None:
-        token_, created = Token.objects.get_or_create(user=user)
-        return Response(data={'key': token_.key})
-    return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user = authenticate(**serializer.validated_data)
+        if user is not None:
+            token_, created = Token.objects.get_or_create(user=user)
+            return Response(data={'key': token_.key})
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
 
 @api_view(['POST'])
 def register_api_view(request):
